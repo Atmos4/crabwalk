@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { auth, firestore } from '$lib/firebase';
-	import { generateWasteObjects, getNextLobsterRow } from '$lib/gameLogic';
+	import { generateWasteObjects, getInitialGameState } from '$lib/gameLogic';
 	import { doc, updateDoc } from 'firebase/firestore';
 	import { userStore } from 'sveltefire';
 
@@ -24,15 +24,7 @@
 			},
 			'player1.role': role,
 			'player1.objects': player1Objects,
-			crab: {
-				position: {
-					x: 0,
-					y: 0
-				}
-			},
-			lifes: 3,
-			turn: 0,
-			placeLobster: getNextLobsterRow(),
+			...getInitialGameState(),
 			wasteObjects: objects
 		});
 		goto(`/game/${code}`);

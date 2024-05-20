@@ -1,10 +1,11 @@
 <script lang="ts">
+	import { FirebaseApp, SignedIn, SignedOut } from 'sveltefire';
 	import 'uno.css';
-	import { FirebaseApp, SignedIn, SignedOut, User } from 'sveltefire';
 
+	import { page } from '$app/stores';
 	import { initializeApp } from 'firebase/app';
-	import { doc, getDoc, getFirestore, setDoc } from 'firebase/firestore';
 	import { GoogleAuthProvider, getAuth, signInWithPopup } from 'firebase/auth';
+	import { doc, getDoc, getFirestore, setDoc } from 'firebase/firestore';
 
 	// Initialize Firebase
 	const app = initializeApp({
@@ -35,7 +36,12 @@
 	<SignedIn let:user let:signOut>
 		<nav>
 			<ul>
-				<li>{user.displayName}</li>
+				<li>
+					{#if $page.data.backLink}
+						<a href={$page.data.backLink} role="button" class="bg-slate border-slate mb-4">Back</a>
+					{/if}
+					<span class="ml-4">{user.displayName}</span>
+				</li>
 			</ul>
 			<ul>
 				<li><button on:click={() => signOut()} class="secondary">Sign out</button></li>

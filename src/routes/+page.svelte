@@ -37,7 +37,9 @@
 <Collection ref={q} let:data={games}>
 	<ul>
 		{#each games as g (g.id)}
-			<li><a href="/game/{g.id}">{g.id}</a></li>
+			<li>
+				<a href="/game/{g.id}">{g.createdAt.toDate().toLocaleString()}</a>
+			</li>
 		{/each}
 	</ul>
 </Collection>

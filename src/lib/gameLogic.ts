@@ -118,7 +118,7 @@ export function getNextLobsterRow(data?: any) {
 
 export function computeNewGameState(data: any, i: number, j: number) {
 	const newGameState: any = {
-		lifes: data.lifes
+		lives: data.lives
 	};
 	if (
 		data.placeLobster !== undefined &&
@@ -132,13 +132,13 @@ export function computeNewGameState(data: any, i: number, j: number) {
 		return newGameState;
 	}
 
-	newGameState.turn = data.turn + 1;
+	newGameState.turn = data.turn - 1;
 	newGameState['crab.position.x'] = i;
 	newGameState['crab.position.y'] = j;
 	newGameState.placeLobster = getNextLobsterRow(data);
 	const hasCrossedBadGuy = handleXCrabOffset(data, i, j) || handleYCrabOffset(data, i, j);
 	if (hasCrossedBadGuy) {
-		newGameState.lifes--;
+		newGameState.lives--;
 	}
 	const object: WasteObject | undefined = data.wasteObjects[`${i}_${j}`] ?? undefined;
 	console.log({ object });
@@ -146,18 +146,32 @@ export function computeNewGameState(data: any, i: number, j: number) {
 		switch (object.type) {
 			case 'waste':
 				if (object.hidden === 'badGuy') {
-					newGameState.lifes -= 2;
+					newGameState.lives -= 2;
 				}
 				newGameState[`wasteObjects.${i}_${j}.type`] = object.hidden;
 				newGameState[`wasteObjects.${i}_${j}.hidden`] = deleteField();
 				break;
 			case 'badGuy':
 				if (!hasCrossedBadGuy) {
-					newGameState.lifes--;
+					newGameState.lives--;
 				}
 				break;
 			//TODO Handle other types here
 		}
 	}
 	return newGameState;
+}
+
+export function getInitialGameState() {
+	return {
+		crab: {
+			position: {
+				x: 0,
+				y: 0
+			}
+		},
+		placeLobster: getNextLobsterRow(),
+		lives: 3,
+		turn: 24
+	};
 }

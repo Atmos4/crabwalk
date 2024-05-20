@@ -1,25 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { auth, firestore } from '$lib/firebase';
-	import {
-		collection,
-		deleteDoc,
-		deleteField,
-		doc,
-		query,
-		setDoc,
-		updateDoc
-	} from 'firebase/firestore';
-	import { Doc, userStore } from 'sveltefire';
 	import crabImage from '$lib/assets/crab-icon.png';
-	import {
-		computeNewGameState,
-		generateWasteObjects,
-		getNextLobsterRow,
-		type ObjectType,
-		type WasteObject
-	} from '$lib/gameLogic';
+	import { auth, firestore } from '$lib/firebase';
+	import { computeNewGameState, generateWasteObjects, getInitialGameState } from '$lib/gameLogic';
+	import { deleteDoc, doc, setDoc, updateDoc } from 'firebase/firestore';
+	import { Doc, userStore } from 'sveltefire';
 
 	const grid = Array.from({ length: 6 }, (_, i) => Array.from({ length: 6 }, (_, k) => 6 * i + k));
 
@@ -47,20 +33,18 @@
 
 	async function reset(ref: any, data: any) {
 		const { objects, player1Objects, player2Objects } = generateWasteObjects();
+		const role = Math.floor(Math.random() * 2);
 		await setDoc(ref, {
-			player1: { ...data.player1, objects: player1Objects },
-			player2: { ...data.player2, objects: player2Objects },
-			crab: {
-				position: {
-					x: 0,
-					y: 0
-				}
-			},
-			placeLobster: getNextLobsterRow(),
-			lifes: 3,
-			turn: 0,
+			player1: { ...data.player1, objects: player1Objects, role },
+			player2: { ...data.player2, objects: player2Objects, role: 1 - role },
+			createdAt: data.createdAt,
+			...getInitialGameState(),
 			wasteObjects: objects
 		});
+	}
+
+	function isGameOver(data: any) {
+		return data.turn <= 0 || data.lives <= 0;
 	}
 
 	function isMyTurn(data: any) {
@@ -68,7 +52,7 @@
 	}
 
 	function checkCurrentCell(data: any, i: number, j: number) {
-		if (!isMyTurn(data)) {
+		if (!isMyTurn(data) || isGameOver(data)) {
 			return false;
 		}
 		if (data.placeLobster !== undefined) {
@@ -78,6 +62,9 @@
 	}
 
 	function getPhaseLabel(data: any) {
+		if (isGameOver(data)) {
+			return 'Game over ☹️';
+		}
 		if (!isMyTurn(data)) {
 			return 'Wait for the other player';
 		}
@@ -107,9 +94,6 @@
 </script>
 
 <Doc ref={`games/${$page.params.gameId}`} let:data let:ref>
-	<a href="/" role="button" class="bg-slate border-slate mb-4">Back</a>
-	<button on:click={() => reset(ref, data)}>Reset</button>
-	<button on:click={deleteGame}>Delete</button>
 	{#if !data.player2}
 		<p>Waiting for 2nd player...</p>
 		<label>
@@ -158,14 +142,15 @@
 			{#if error}
 				<p class="c-red">{error}</p>
 			{/if}
-			{#if isMyTurn(data)}
-				<p>It's your turn!</p>
-			{:else}
-				<p>It's their turn</p>
-			{/if}
+			<p>
+				⏰ {data.turn} ❤️ {data.lives}
+			</p>
 		</section>
-		<section class="flex justify-between">
-			<p>❤️ {data.lifes}, Turn {data.turn}</p>
-		</section>
+		<details>
+			<summary>Devtools</summary>
+			<button on:click={() => reset(ref, data)}>Reset</button>
+			<button on:click={deleteGame}>Delete</button>
+			<p>Turn {data.turn}</p>
+		</details>
 	{/if}
 </Doc>
