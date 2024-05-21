@@ -3,7 +3,12 @@
 	import { page } from '$app/stores';
 	import crabImage from '$lib/assets/crab-icon.png';
 	import { auth, firestore } from '$lib/firebase';
-	import { computeNewGameState, generateWasteObjects, getInitialGameState } from '$lib/gameLogic';
+	import {
+		computeNewGameState,
+		generateWasteObjects,
+		getInitialGameState,
+		type ObjectType
+	} from '$lib/gameLogic';
 	import { deleteDoc, doc, setDoc, updateDoc } from 'firebase/firestore';
 	import { Doc, userStore } from 'sveltefire';
 
@@ -22,6 +27,10 @@
 	async function deleteGame() {
 		await deleteDoc(doc(firestore, 'games', $page.params.gameId));
 		goto('/');
+	}
+
+	function getWasteObjects(data: any): { hidden: ObjectType }[] {
+		return data.wasteObjects;
 	}
 
 	function getOtherPlayer(data: any) {
@@ -68,7 +77,7 @@
 		if (!isMyTurn(data)) {
 			return 'Wait for the other player';
 		}
-		if (data.placeLobster) {
+		if (data.placeLobster !== undefined) {
 			return 'Place an evil lobster on the marked row';
 		}
 		return `Move the crab ${getCurrentPlayer(data).role ? 'horizontally' : 'vertically'}`;
@@ -94,6 +103,8 @@
 </script>
 
 <Doc ref={`games/${$page.params.gameId}`} let:data let:ref>
+	{@const victory = !Object.values(getWasteObjects(data)).filter((v) => v.hidden === 'friend')
+		.length}
 	{#if !data.player2}
 		<p>Waiting for 2nd player...</p>
 		<label>
@@ -102,10 +113,10 @@
 		</label>
 	{:else}
 		<section class="text-center">
-			{getPhaseLabel(data)}
+			{victory ? 'Victory 🎉' : getPhaseLabel(data)}
 		</section>
 		<section
-			class="grid grid-cols-6 grid-rows-6 bg-gradient-to-b from-yellow to-blue-800 max-w-xl mx-auto"
+			class="grid grid-cols-6 grid-rows-6 bg-gradient-to-b from-yellow to-blue-800 max-w-xl mx-auto cursor-pointer"
 		>
 			{#each grid as row, i}
 				{#each row as _, j}
@@ -120,7 +131,7 @@
 						class:outline-green-6={validCell && data.placeLobster !== undefined}
 						class:outline-solid={validCell && data.placeLobster !== undefined}
 						tabindex={validCell ? 0 : -1}
-						on:click={() => handleClick(data, ref, i, j)}
+						on:click={() => !victory && handleClick(data, ref, i, j)}
 					>
 						{#if data.crab.position.x == i && data.crab.position.y == j}
 							<img src={crabImage} alt="crab" class="h-20" />

@@ -112,7 +112,7 @@ export function getNextLobsterRow(data?: any) {
 			Array.from(Array(6), () => 0)
 		)
 		.map((v, k) => ({ k, v }))
-		.filter((v) => v.v < 4);
+		.filter((v) => v.v < 6);
 	return array[Math.floor(Math.random() * array.length)].k;
 }
 
