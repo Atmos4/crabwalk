@@ -18,6 +18,14 @@
 
 	let error = '';
 
+	let newName = '';
+
+	async function editName(ref: any) {
+		if (!newName) return;
+		await updateDoc(ref, { name: newName });
+		newName = '';
+	}
+
 	const labels: any = {
 		badGuy: '😈',
 		friend: '🙂',
@@ -103,8 +111,6 @@
 </script>
 
 <Doc ref={`games/${$page.params.gameId}`} let:data let:ref>
-	{@const victory = !Object.values(getWasteObjects(data)).filter((v) => v.hidden === 'friend')
-		.length}
 	{#if !data.player2}
 		<p>Waiting for 2nd player...</p>
 		<label>
@@ -112,6 +118,8 @@
 			<input type="text" readonly value={ref?.id} />
 		</label>
 	{:else}
+		{@const victory = !Object.values(getWasteObjects(data)).filter((v) => v.hidden === 'friend')
+			.length}
 		<section class="text-center">
 			{victory ? 'Victory 🎉' : getPhaseLabel(data)}
 		</section>
@@ -157,11 +165,21 @@
 				⏰ {data.turn} ❤️ {data.lives}
 			</p>
 		</section>
-		<details>
-			<summary>Devtools</summary>
-			<button on:click={() => reset(ref, data)}>Reset</button>
-			<button on:click={deleteGame}>Delete</button>
-			<p>Turn {data.turn}</p>
-		</details>
 	{/if}
+
+	<section>
+		<label for="newName">Name: {data.name}</label>
+		<form role="group" on:submit|preventDefault={() => editName(ref)}>
+			<input type="text" id="newName" bind:value={newName} placeholder={`New name`} />
+			<button class="whitespace-nowrap">Change</button>
+		</form>
+	</section>
+	<details>
+		<summary>Options</summary>
+		{#if data.player2}
+			<button on:click={() => reset(ref, data)}>Reset</button>
+			<p>Turn {data.turn}</p>
+		{/if}
+		<button on:click={deleteGame}>Delete</button>
+	</details>
 </Doc>

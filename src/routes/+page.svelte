@@ -10,7 +10,6 @@
 	async function createNewGame() {
 		// Put all logic here to setup the game.
 		if (!$user) return;
-		if (!window.crypto) return;
 
 		const newRef = await addDoc(collection(firestore, 'games'), {
 			player1: {
@@ -30,16 +29,19 @@
 </script>
 
 <section>
-	<button on:click={createNewGame}>Start new game</button>
+	<a href="/create" role="button">Start new game</a>
 	<a href="join" role="button" class="bg-yellow border-yellow c-black">Join with code</a>
 </section>
 
 <Collection ref={q} let:data={games}>
-	<ul>
-		{#each games as g (g.id)}
-			<li>
-				<a href="/game/{g.id}">{g.createdAt.toDate().toLocaleString()}</a>
-			</li>
-		{/each}
-	</ul>
+	{#each games as g (g.id)}
+		<article>
+			<div class="flex justify-between">
+				<a href="/game/{g.id}">{g.name ?? g.createdAt.toDate().toLocaleString()}</a>
+				<span>{g.createdAt.toDate().toLocaleDateString()}</span>
+			</div>
+
+			<span>{g.player2 ? `${g.player2.name}` : 'Invite someone!'}</span>
+		</article>
+	{/each}
 </Collection>

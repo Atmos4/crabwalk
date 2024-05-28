@@ -1,12 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { deleteField } from 'firebase/firestore';
-
-export type WasteObject = {
-	type: ObjectType;
-	hidden?: ObjectType;
-};
-
-export type ObjectType = 'badGuy' | 'rock' | 'shrimp' | 'friend' | 'waste';
+import { Timestamp, deleteField } from 'firebase/firestore';
 
 // Function to shuffle the array using Fisher-Yates (aka Knuth) shuffle algorithm
 function shuffleArray(array: string[]) {
@@ -116,7 +109,7 @@ export function getNextLobsterRow(data?: any) {
 	return array[Math.floor(Math.random() * array.length)].k;
 }
 
-export function computeNewGameState(data: any, i: number, j: number) {
+export function computeNewGameState(data: GameData, i: number, j: number) {
 	const newGameState: any = {
 		lives: data.lives
 	};
@@ -175,3 +168,37 @@ export function getInitialGameState() {
 		turn: 24
 	};
 }
+
+// Types
+
+export type WasteObject = {
+	type: ObjectType;
+	hidden?: ObjectType;
+};
+
+export type ObjectType = 'badGuy' | 'rock' | 'shrimp' | 'friend' | 'waste';
+
+type Crab = {
+	position: {
+		x: number;
+		y: number;
+	};
+};
+
+type Player = {
+	id: string;
+	name: string;
+	objects: string[];
+	role: number;
+};
+
+export type GameData = {
+	crab: Crab;
+	createdAt: Timestamp;
+	lives: number;
+	placeLobster: number | undefined;
+	player1: Player;
+	player2: Player;
+	turn: number;
+	wasteObjects: Record<string, WasteObject>;
+};
